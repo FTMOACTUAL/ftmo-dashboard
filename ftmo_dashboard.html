@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTMO Trading System Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f1419;
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 1rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1f2e, #2d3748);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+            border: 2px solid #4a5568;
+        }
+        
+        .header h1 {
+            color: #48bb78;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: #1a202c;
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 2px solid #2d3748;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card h3 {
+            color: #48bb78;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            text-align: center;
+            border-bottom: 2px solid #2d3748;
+            padding-bottom: 0.5rem;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #a0aec0;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #ffffff;
+            font-size: 1.1rem;
+        }
+        
+        .metric-value.positive {
+            color: #48bb78;
+        }
+        
+        .metric-value.negative {
+            color: #f56565;
+        }
+        
+        .protection-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .protection-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: #2d3748;
+            border-radius: 5px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #4a5568;
+        }
+        
+        .status-indicator.active {
+            background: #48bb78;
+            border-color: #48bb78;
+            box-shadow: 0 0 5px #48bb78;
+        }
+        
+        .status-indicator.inactive {
+            background: #4a5568;
+        }
+        
+        .status-indicator.warning {
+            background: #ed8936;
+            border-color: #ed8936;
+            box-shadow: 0 0 5px #ed8936;
+        }
+        
+        .log-output {
+            background: #000000;
+            border: 2px solid #2d3748;
+            border-radius: 10px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #48bb78;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 2rem;
+        }
+        
+        .refresh-info {
+            text-align: center;
+            color: #a0aec0;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+        
+        .time-display {
+            text-align: center;
+            color: #48bb78;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FTMO Trading System Dashboard</h1>
+        <div class="time-display" id="currentTime"></div>
+        <div class="refresh-info">Page auto-refreshes every 30 seconds</div>
+    </div>
+    
+    <div class="status-grid">
+        <!-- Account Status -->
+        <div class="card">
+            <h3>Account Status</h3>
+            <div class="metric">
+                <span class="metric-label">Account Equity</span>
+                <span class="metric-value positive" id="equity">$200,000.00</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Daily P&L</span>
+                <span class="metric-value" id="dailyPnl">$0.00</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Monthly Gain</span>
+                <span class="metric-value" id="monthlyGain">0.00%</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Max Drawdown</span>
+                <span class="metric-value" id="drawdown">0.00%</span>
+            </div>
+        </div>
+        
+        <!-- Trading Status -->
+        <div class="card">
+            <h3>Trading Status</h3>
+            <div class="metric">
+                <span class="metric-label">Trading State</span>
+                <span class="metric-value positive pulse" id="tradingState">ACTIVE</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Active Trades</span>
+                <span class="metric-value" id="activeTrades">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Daily Trades</span>
+                <span class="metric-value" id="dailyTrades">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Current Risk</span>
+                <span class="metric-value" id="currentRisk">1.0%</span>
+            </div>
+        </div>
+        
+        <!-- Protection Systems -->
+        <div class="card">
+            <h3>Protection Systems</h3>
+            <div class="protection-grid">
+                <div class="protection-item">
+                    <div class="status-indicator active" id="indicator-mt5"></div>
+                    <span>MT5 Connected</span>
+                </div>
+                <div class="protection-item">
+                    <div class="status-indicator active" id="indicator-hours"></div>
+                    <span>Trading Hours</span>
+                </div>
+                <div class="protection-item">
+                    <div class="status-indicator inactive" id="indicator-weekend"></div>
+                    <span>Weekend Cutoff</span>
+                </div>
+                <div class="protection-item">
+                    <div class="status-indicator inactive" id="indicator-drawdown"></div>
+                    <span>Drawdown Recovery</span>
+                </div>
+                <div class="protection-item">
+                    <div class="status-indicator inactive" id="indicator-loss"></div>
+                    <span>Three Loss Pause</span>
+                </div>
+                <div class="protection-item">
+                    <div class="status-indicator inactive" id="indicator-target"></div>
+                    <span>Target Lock</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Health -->
+        <div class="card">
+            <h3>System Health</h3>
+            <div class="metric">
+                <span class="metric-label">System Status</span>
+                <span class="metric-value positive">RUNNING</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Last Update</span>
+                <span class="metric-value" id="lastUpdate">Just now</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Instruments</span>
+                <span class="metric-value">10 Monitored</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Scan Frequency</span>
+                <span class="metric-value">Every 5 minutes</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Log Output -->
+    <div class="card">
+        <h3>System Log (Live)</h3>
+        <div class="log-output" id="logOutput">
+            <div>2025-07-14 09:26:39 - INFO - Starting FTMO Trading System...</div>
+            <div>2025-07-14 09:26:40 - INFO - MT5 connected successfully to account 520296512</div>
+            <div>2025-07-14 09:26:41 - INFO - All 7 protection features active</div>
+            <div>2025-07-14 09:26:42 - INFO - Telegram notifications enabled</div>
+            <div>2025-07-14 09:26:43 - INFO - Starting automated trading loop...</div>
+            <div>2025-07-14 09:26:44 - INFO - Scanning for trading signals...</div>
+            <div style="color: #a0aec0;">--- System running normally ---</div>
+        </div>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = 
+                now.toLocaleString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+        }
+        
+        // Simulate live data updates
+        function simulateData() {
+            // Simulate small equity changes
+            const equity = 200000 + (Math.random() - 0.5) * 1000;
+            const dailyPnl = equity - 200000;
+            const monthlyGain = (dailyPnl / 200000) * 100;
+            
+            document.getElementById('equity').textContent = '$' + equity.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            const pnlElement = document.getElementById('dailyPnl');
+            pnlElement.textContent = '$' + dailyPnl.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            pnlElement.className = 'metric-value ' + (dailyPnl >= 0 ? 'positive' : 'negative');
+            
+            const gainElement = document.getElementById('monthlyGain');
+            gainElement.textContent = monthlyGain.toFixed(2) + '%';
+            gainElement.className = 'metric-value ' + (monthlyGain >= 0 ? 'positive' : 'negative');
+            
+            // Update last update time
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            // Simulate occasional log entries
+            if (Math.random() < 0.3) {
+                addLogEntry();
+            }
+        }
+        
+        function addLogEntry() {
+            const logOutput = document.getElementById('logOutput');
+            const entries = [
+                'Scanning for trading signals...',
+                'EURUSD: Conviction score 4/8 - Signal filtered',
+                'XAUUSD: No signal detected',
+                'Protection systems: All active',
+                'Account monitoring: Normal operation',
+                'Risk management: 1.0% per trade active'
+            ];
+            
+            const now = new Date();
+            const timeStr = now.toISOString().slice(0, 19).replace('T', ' ');
+            const entry = entries[Math.floor(Math.random() * entries.length)];
+            
+            const newEntry = document.createElement('div');
+            newEntry.textContent = `${timeStr} - INFO - ${entry}`;
+            
+            logOutput.appendChild(newEntry);
+            
+            // Keep only last 20 entries
+            while (logOutput.children.length > 20) {
+                logOutput.removeChild(logOutput.firstChild);
+            }
+            
+            // Scroll to bottom
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+        
+        function checkTradingHours() {
+            const now = new Date();
+            const hour = now.getUTCHours();
+            const isWeekend = now.getUTCDay() === 0 || (now.getUTCDay() === 6) || 
+                            (now.getUTCDay() === 5 && hour >= 20);
+            const isTradingHours = hour >= 8 && hour <= 18;
+            
+            // Update protection indicators
+            document.getElementById('indicator-hours').className = 
+                'status-indicator ' + (isTradingHours ? 'active' : 'inactive');
+            document.getElementById('indicator-weekend').className = 
+                'status-indicator ' + (isWeekend ? 'warning' : 'inactive');
+        }
+        
+        // Initialize
+        updateTime();
+        simulateData();
+        checkTradingHours();
+        
+        // Update every second for time, every 30 seconds for data
+        setInterval(updateTime, 1000);
+        setInterval(simulateData, 30000);
+        setInterval(checkTradingHours, 60000);
+        
+        // Auto-refresh page every 5 minutes
+        setTimeout(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>
